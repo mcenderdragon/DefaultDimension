@@ -1,7 +1,12 @@
 package mcenderdragon.defaultdimension;
 
+import org.lwjgl.system.FunctionProviderLocal;
+
+import net.minecraft.util.ResourceLocation;
+import net.minecraft.world.dimension.DimensionType;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.common.ForgeConfigSpec.BooleanValue;
+import net.minecraftforge.common.ForgeConfigSpec.ConfigValue;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModContainer;
 import net.minecraftforge.fml.config.ModConfig;
@@ -39,18 +44,29 @@ public class DDConfig
 	public static class Common
 	{
 		
-		public final BooleanValue futurepackStartMenu;
+		public final ConfigValue<String> defaultDimension;
 
 		Common(ForgeConfigSpec.Builder builder) 
 		{
-			builder.push("client");
+			builder.push("common");
 			
-			futurepackStartMenu = builder
-					.comment("Show custom loading Screen")
-					.define("futurepack_start_menu", false);
+			defaultDimension = builder
+					.comment("The dimension the player will (re)spawn in.")
+					.define("default_dimension", "minecraft:overworld");
 			
 			
 			builder.pop();
+		}
+		
+		public DimensionType getDefaultDimension()
+		{
+			DimensionType t = DimensionType.byName(new ResourceLocation(defaultDimension.get()));
+			if(t==null)
+			{
+				DDMain.LOGGER.warn("Could not find dimensions {}", defaultDimension.get());
+				t = DimensionType.OVERWORLD;
+			}
+			return t;
 		}
 	}
 }

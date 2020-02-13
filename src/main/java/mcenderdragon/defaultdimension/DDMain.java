@@ -1,13 +1,29 @@
 package mcenderdragon.defaultdimension;
 
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import net.minecraft.block.Block;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.potion.EffectInstance;
+import net.minecraft.potion.Effects;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.World;
+import net.minecraft.world.dimension.DimensionType;
+import net.minecraft.world.gen.Heightmap.Type;
+import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegistryEvent;
+import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.InterModComms;
@@ -86,6 +102,69 @@ public class DDMain
     {
     	
     }
+    
+    @SubscribeEvent
+    public void onPlayeCloned(PlayerEvent.Clone event)
+    {
+    	
+    }
+    
+    @SubscribeEvent
+    public void onEntitySpawnFirst(EntityJoinWorldEvent event)
+    {
+    	Entity e = event.getEntity();
+    	if(!e.world.isRemote)
+    	{
+    		if(e instanceof ServerPlayerEntity)
+    		{
+    			ServerPlayerEntity pl = (ServerPlayerEntity) event.getEntity();
+    			
+    			CompoundNBT nbt = pl.getPersistentData();
+    			CompoundNBT modData = nbt.getCompound(MOD_ID);
+    			
+    			if(!modData.getBoolean("isSpawnDimensionSet"))
+    			{
+    				DimensionType type = DDConfig.COMMON.getDefaultDimension();
+    				if(pl.getSpawnDimension()!=type)
+    				{
+    					pl.setSpawnDimenion(type);
+    				}
+    				
+    				if(pl.dimension != type)
+    				{
+    					MinecraftServer server = pl.getServer();
+    					ServerWorld world = server.getWorld(type);
+    					
+    					LOGGER.info("Changing Player {} dimension to {}",pl,  type);
+    					pl.teleport(world, pl.posX, pl.posY, pl.posZ, pl.rotationYaw, pl.rotationPitch);
+    					
+    					BlockPos spawn = pl.getBedLocation(type);
+    					boolean forced = pl.isSpawnForced(type);
+    					Optional<Vec3d> optional;
+    					if(spawn!=null && World.isValid(spawn))
+    					{
+    						optional = PlayerEntity.func_213822_a(world, spawn, forced);
+    					}
+    					else
+    					{
+    						optional = Optional.empty();
+    					}
+    					BlockPos worldSpawn = world.getSpawnPoint();
+    					Vec3d spawnPos = optional.orElse(new Vec3d(worldSpawn.getX() + 0.5, worldSpawn.getY() + 0.2, worldSpawn.getZ() + 0.5));
+    					pl.setPosition(spawnPos.getX(), spawnPos.getY(), spawnPos.getZ());
+    					LOGGER.info("Seting player {} position to {}", pl, spawnPos);
+    					pl.addPotionEffect(new EffectInstance(Effects.RESISTANCE, 20 * 5, 20, true, false));
+    				}
+    				
+    				modData.putBoolean("isSpawnDimensionSet", true);
+    			}
+    			
+    			nbt.put(MOD_ID, modData);
+    		}
+    	}
+    	
+    }
+    
     
     @Mod.EventBusSubscriber(bus=Mod.EventBusSubscriber.Bus.MOD)
     public static class RegistryEvents 
