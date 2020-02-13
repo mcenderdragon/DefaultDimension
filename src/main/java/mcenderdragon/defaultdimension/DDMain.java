@@ -106,7 +106,21 @@ public class DDMain
     @SubscribeEvent
     public void onPlayeCloned(PlayerEvent.Clone event)
     {
-    	event.getPlayer().setSpawnDimenion(event.getOriginal().getSpawnDimension());
+    	if(event.getPlayer() instanceof ServerPlayerEntity)
+		{
+			ServerPlayerEntity pl = (ServerPlayerEntity) event.getPlayer();
+			
+			CompoundNBT nbt = pl.getPersistentData().getCompound(PlayerEntity.PERSISTED_NBT_TAG);
+			CompoundNBT modData = nbt.getCompound(MOD_ID);
+			
+			if(modData.getBoolean("isSpawnDimensionSet"))
+			{
+				event.getPlayer().setSpawnDimenion(event.getOriginal().getSpawnDimension());
+				
+			}
+    	
+			
+		}
     }
     
     @SubscribeEvent
