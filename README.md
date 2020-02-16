@@ -7,10 +7,14 @@ Minecraft Mod to change the default (re)spawn Dimension
 
 # Features
 This mod is quite simple: in the config you change the default dimension to the dimension you want and all players will spawn in there. Some mods are dimensions where you ran respawn in (and use a bed there) players will also respawn there and will not ported back. This also adds a dimensional spread command to spread players across diffferent dimensions.
+
 Usage:
+
     ``/spreaddimensional <player> <dimensions>``
 *dimensions* is a string in " quotes different dimensions are seperated by comma ",".
+
 Example: 
+
 	``/spreaddimensional @a "overworld, the_nether"``
 
 ## Example config:
