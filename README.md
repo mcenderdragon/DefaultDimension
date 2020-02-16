@@ -10,12 +10,12 @@ This mod is quite simple: in the config you change the default dimension to the 
 
 Usage:
 
-    ``/spreaddimensional <player> <dimensions>``
+    /spreaddimensional <player> <dimensions>
 *dimensions* is a string in " quotes different dimensions are seperated by comma ",".
 
 Example: 
 
-	``/spreaddimensional @a "overworld, the_nether"``
+    /spreaddimensional @a "overworld, the_nether"
 
 ## Example config:
 if you change the default dimension to the nether you will spawn in there. If you die in the end you will get ported to the nether again, but if you die in the overworld since you have a bed there you will also respawn there.
