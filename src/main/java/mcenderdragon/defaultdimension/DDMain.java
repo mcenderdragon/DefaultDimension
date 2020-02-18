@@ -166,7 +166,7 @@ public class DDMain
 	public static void respawnIn(ServerWorld world, ServerPlayerEntity pl)
 	{
 		LOGGER.info("Changing Player {} dimension to {}",pl, world.dimension.getType());
-		pl.teleport(world, pl.posX, pl.posY, pl.posZ, pl.rotationYaw, pl.rotationPitch);
+		pl.teleport(world, pl.func_226277_ct_(), pl.func_226278_cu_(), pl.func_226281_cx_(), pl.rotationYaw, pl.rotationPitch);
 		
 		BlockPos spawn = pl.getBedLocation(world.dimension.getType());
 		boolean forced = pl.isSpawnForced(world.dimension.getType());

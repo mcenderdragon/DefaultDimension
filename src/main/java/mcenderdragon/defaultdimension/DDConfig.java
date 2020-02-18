@@ -36,7 +36,7 @@ public class DDConfig
     }
 
     @SubscribeEvent
-    public static void onFileChange(final ModConfig.ConfigReloading configEvent) 
+    public static void onFileChange(final ModConfig.Reloading configEvent) 
     {
     	
     }
