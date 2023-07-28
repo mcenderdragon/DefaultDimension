@@ -1,35 +1,31 @@
 package mcenderdragon.defaultdimension;
 
-import java.awt.color.CMMException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Random;
-import java.util.stream.StreamSupport;
+import java.util.*;
 
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 
-import net.minecraft.command.CommandException;
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.Commands;
-import net.minecraft.command.arguments.EntityArgument;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.server.management.PlayerList;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.world.dimension.DimensionType;
-import net.minecraft.world.server.ServerWorld;
+import net.minecraft.commands.CommandRuntimeException;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.commands.arguments.EntityArgument;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.Level;
+
 
 public class CommandDimensinalSpread 
 {
-	public static void register(CommandDispatcher<CommandSource> dispatcher) 
+	public static void register(CommandDispatcher<CommandSourceStack> dispatcher)
 	{
 		dispatcher.register(Commands.literal("spreaddimensional").requires((p_198721_0_) -> 
 			{
-				return p_198721_0_.hasPermissionLevel(2);
+				return p_198721_0_.hasPermission(2);
 			}).then(Commands.argument("targets", EntityArgument.players()).then(Commands.argument("dimensions", StringArgumentType.greedyString())
 				.executes((p_198718_0_) -> {
 					return spreadPlayers(p_198718_0_.getSource(), EntityArgument.getPlayers(p_198718_0_, "targets"), StringArgumentType.getString(p_198718_0_, "dimensions"));
@@ -38,45 +34,48 @@ public class CommandDimensinalSpread
 		);
 	}
 	
-	public static int spreadPlayers(CommandSource executor, Collection<ServerPlayerEntity> players, String dimensions)
+	public static int spreadPlayers(CommandSourceStack executor, Collection<ServerPlayer> players, String dimensions)
 	{
 		try
 		{
-		ResourceLocation[] dim = Arrays.stream(dimensions.split(",")).map(s -> s.replaceAll("[^a-z0-9/._/-/:]", "")).map(ResourceLocation::new).toArray(ResourceLocation[]::new);
-		ArrayList<DimensionType> dims = new ArrayList<DimensionType>(dim.length);
-		for(ResourceLocation r : dim)
-		{
-			DimensionType type = DimensionType.byName(r);
-			if(type==null || !r.equals(type.getRegistryName()))
+			ResourceLocation[] dim = Arrays.stream(dimensions.split(",")).map(s -> s.replaceAll("[^a-z0-9/._/-/:]", "")).map(ResourceLocation::new).toArray(ResourceLocation[]::new);
+			ArrayList<ResourceKey<Level>> dims = new ArrayList<ResourceKey<Level>>(dim.length);
+			MinecraftServer server = executor.getServer();
+
+			@SuppressWarnings("deprecation")
+			Map<ResourceKey<Level>, ServerLevel> map = server.forgeGetWorldMap();
+
+			for(ResourceLocation r : dim)
 			{
-				executor.sendErrorMessage(new StringTextComponent("Did not found dimension " + r));
+				ResourceKey<Level> type = ResourceKey.create(ResourceKey.createRegistryKey(new ResourceLocation("minecraft", "dimension")), r);
+
+				if (map.containsKey(type)) {
+					dims.add(type);
+				} else {
+					executor.sendFailure(Component.literal("Did not find dimension " + r));
+					return 0;
+				}
+			}
+		
+			if(dims.isEmpty())
+			{
+				executor.sendFailure(Component.literal("Dimension list was empty"));
 				return 0;
 			}
-			else
+		
+			Random r = new Random();
+
+			for(ServerPlayer e : players)
 			{
-				dims.add(type);
+				ResourceKey<Level> target = dims.get(r.nextInt(dims.size()));
+				ServerLevel world = e.getServer().getLevel(target);
+
+				DDMain.respawnIn(world, e);
 			}
-		}
-		
-		if(dims.isEmpty())
-		{
-			executor.sendErrorMessage(new StringTextComponent("Dimension list was empty"));
-			return 0;
-		}
-		
-		Random r = new Random();
-		
-		for(ServerPlayerEntity e : players)
-		{
-			DimensionType target = dims.get(r.nextInt(dims.size()));
-			ServerWorld world = e.getServer().getWorld(target);
-			
-			DDMain.respawnIn(world, e);
-		}
 		}
 		catch(Exception e)
 		{
-			throw new CommandException(new StringTextComponent(e.getMessage()));
+			throw new CommandRuntimeException(Component.literal(e.getMessage()));
 		}
 		return Command.SINGLE_SUCCESS;
 	}
