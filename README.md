@@ -1,5 +1,5 @@
-[![](http://cf.way2muchnoise.eu/full_default-dimension_downloads.svg)](https://minecraft.curseforge.com/projects/default-dimension)
-[![](http://cf.way2muchnoise.eu/versions/Available%20For%20Minecraft_default-dimension_all.svg)](https://minecraft.curseforge.com/projects/default-dimension)
+[![](http://cf.way2muchnoise.eu/full_default-dimension_downloads.svg)]([https://minecraft.curseforge.com/projects/default-dimension](https://www.curseforge.com/minecraft/mc-mods/default-dimension))
+[![](http://cf.way2muchnoise.eu/versions/Available%20For%20Minecraft_default-dimension_all.svg)]([https://minecraft.curseforge.com/projects/default-dimension](https://www.curseforge.com/minecraft/mc-mods/default-dimension))
 
 # DefaultDimension
 Minecraft Mod to change the default (re)spawn Dimension
