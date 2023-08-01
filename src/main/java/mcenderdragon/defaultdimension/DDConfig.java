@@ -1,16 +1,19 @@
 package mcenderdragon.defaultdimension;
 
-import org.lwjgl.system.FunctionProviderLocal;
+import java.util.Map;
 
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.world.dimension.DimensionType;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.common.ForgeConfigSpec;
-import net.minecraftforge.common.ForgeConfigSpec.BooleanValue;
 import net.minecraftforge.common.ForgeConfigSpec.ConfigValue;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModContainer;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.config.ModConfig.Type;
+import net.minecraftforge.fml.event.config.ModConfigEvent;
 
 public class DDConfig 
 {
@@ -30,13 +33,13 @@ public class DDConfig
 	}
 	
 	@SubscribeEvent
-    public static void onLoad(final ModConfig.Loading configEvent) 
+    public static void onLoad(final ModConfigEvent.Loading configEvent)
 	{
         DDMain.LOGGER.debug("Loaded config file {}", configEvent.getConfig().getFileName());
     }
 
     @SubscribeEvent
-    public static void onFileChange(final ModConfig.Reloading configEvent) 
+    public static void onFileChange(final ModConfigEvent.Loading configEvent)
     {
     	
     }
@@ -58,15 +61,19 @@ public class DDConfig
 			builder.pop();
 		}
 		
-		public DimensionType getDefaultDimension()
+		public ResourceKey<Level> getDefaultDimension(MinecraftServer server)
 		{
-			DimensionType t = DimensionType.byName(new ResourceLocation(defaultDimension.get()));
-			if(t==null)
-			{
+			@SuppressWarnings("deprecation")
+			Map<ResourceKey<Level>, ServerLevel> map = server.forgeGetWorldMap();
+
+			ResourceKey<Level> worldKey = ResourceKey.create(ResourceKey.createRegistryKey(new ResourceLocation("minecraft", "dimension")), new ResourceLocation(defaultDimension.get()));
+
+			if (map.containsKey(worldKey)) {
+				return worldKey;
+			} else {
 				DDMain.LOGGER.warn("Could not find dimensions {}", defaultDimension.get());
-				t = DimensionType.OVERWORLD;
+				return Level.OVERWORLD;
 			}
-			return t;
 		}
 	}
 }
